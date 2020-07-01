@@ -11,6 +11,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/DamageType.h"
 #include "ExpesPlayerController.h"
+#include "DrawDebugHelpers.h"
 
 AExpesProjectile::AExpesProjectile() 
 {
@@ -86,6 +87,7 @@ void AExpesProjectile::OnBeginOverlapForComponent(UPrimitiveComponent* Overlappe
 
         HandleSplashHit(OtherActor, bIsDirectHit);
 
+        DrawDebugSphere(GetWorld(), GetActorLocation(), BlastRadius, 20, FColor::Red, false, 10, 0, 1);
         Destroy();
     }
 }
@@ -149,19 +151,11 @@ void AExpesProjectile::HandleSplashHit(AActor* OtherActor, bool bDirectHit)
     // iterate victims
     for (auto&& Result : OutOverlaps)
     {
-        TWeakObjectPtr<UPrimitiveComponent> Comp = Result.Component;
+        AActor* HitActor = Result.GetActor();
 
-        // two components of the character can be registered: the capsule and the third person mesh
-        // to avoid splash damage being applied to a character twice, we single out the third person component
-        if (!Comp.IsValid() || !Cast<USkeletalMeshComponent>(Comp))
+        if (HitActor)
         {
-            continue;
-        }
-
-        AActor* Actor = Comp->GetOwner();
-        if (Actor)
-        {
-            AExpesCharacter* Character = Cast<AExpesCharacter>(Actor);
+            AExpesCharacter* Character = Cast<AExpesCharacter>(HitActor);
             if (Character)
             {
                 SplashDamageVictimList.push_back(TWeakObjectPtr<AExpesCharacter>(Character));
@@ -189,7 +183,7 @@ void AExpesProjectile::HandleSplashHit(AActor* OtherActor, bool bDirectHit)
 
                 // inflict damage
                 // if direct hit damage has already been applied, skip to the next victim
-                if (bDirectHit && OtherActor == Actor)
+                if (bDirectHit && OtherActor == HitActor)
                 {
                     continue;
                 }
@@ -213,7 +207,7 @@ void AExpesProjectile::HandleSplashHit(AActor* OtherActor, bool bDirectHit)
             {
                 // inflict damage
                 // if direct hit damage has already been applied, skip to the next victim
-                if (bDirectHit && OtherActor == Actor)
+                if (bDirectHit && OtherActor == HitActor)
                 {
                     continue;
                 }
@@ -226,25 +220,8 @@ void AExpesProjectile::HandleSplashHit(AActor* OtherActor, bool bDirectHit)
                 DamageEvent.Params.OuterRadius = BlastRadius;
                 DamageEvent.Params.MinimumDamage = 0.0;
 
-                DamageAmount = OtherActor->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
+                DamageAmount = HitActor->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
             }
-
-            // inflict damage
-                // if direct hit damage has already been applied, skip to the next victim
-            if (bDirectHit && OtherActor == Actor)
-            {
-                continue;
-            }
-
-            // reduce self splash damage (e.g. rocket jump, nailgun jump)
-            float DamageAmount = BasicDamageAdjusted;
-
-            FRadialDamageEvent DamageEvent;
-            DamageEvent.Params.BaseDamage = DamageAmount;
-            DamageEvent.Params.OuterRadius = BlastRadius;
-            DamageEvent.Params.MinimumDamage = 0.0;
-
-            DamageAmount = OtherActor->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
         }
     }
 }
