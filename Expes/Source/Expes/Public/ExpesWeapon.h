@@ -66,12 +66,17 @@ public:
 
 	virtual void RocketLauncherFire(class AExpesCharacter* Player);
 
+	virtual void PlayFireEffects(class AExpesCharacter* Player);
+
 protected:
 	/** Returns whether or not the weapon is able to fire */
 	bool CanFire(class AExpesCharacter* Player);
 
 	/** Decrements weapon ammo */
 	void ConsumeAmmo(class AExpesCharacter* Player);
+
+	UPROPERTY(EditDefaultsOnly, Category = Weapon)
+	TSubclassOf<UCameraShake> FireCamShake;
 
 public:
 	/** The damage per round */

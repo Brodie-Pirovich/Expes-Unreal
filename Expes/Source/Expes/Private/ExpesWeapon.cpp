@@ -41,30 +41,35 @@ void AExpesWeapon::Tick(float DeltaTime)
 	{
 		RemainingReloadTime -= DeltaTime;
 	}
+
+    UE_LOG(LogTemp, Warning, TEXT("%f"), RemainingReloadTime);
 }
 
 void AExpesWeapon::Fire(class AExpesCharacter* player)
 {
-    switch (WeaponType)
+    if (CanFire(player))
     {
-    case EWeaponType::ENone:
-        return;
-        break;
-    case EWeaponType::EShotgun:
-        ShotgunFire(player);
-        break;
-    case EWeaponType::ESShotgun:
-        SuperShotgunFire(player);
-        break;
-    case EWeaponType::ERocket:
-        RocketLauncherFire(player);
-        break;
-    case EWeaponType::ERail:
-        return;
-        break;
-    default:
-        return;
-        break;
+        switch (WeaponType)
+        {
+        case EWeaponType::ENone:
+            return;
+            break;
+        case EWeaponType::EShotgun:
+            ShotgunFire(player);
+            break;
+        case EWeaponType::ESShotgun:
+            SuperShotgunFire(player);
+            break;
+        case EWeaponType::ERocket:
+            RocketLauncherFire(player);
+            break;
+        case EWeaponType::ERail:
+            RailgunFire(player);
+            break;
+        default:
+            return;
+            break;
+        }
     }
 }
 
@@ -141,7 +146,6 @@ void AExpesWeapon::ShotgunFire(class AExpesCharacter* Player)
 
     if (CanFire(Player))
     {
-        //FireSpread(Rotation, SpawnLocation);
         FireShotgun(Player);
         ConsumeAmmo(Player);
         RemainingReloadTime = ReloadTime;
@@ -155,13 +159,12 @@ void AExpesWeapon::ShotgunFire(class AExpesCharacter* Player)
 
 void AExpesWeapon::SuperShotgunFire(class AExpesCharacter* Player)
 {
-    ServerPlayFireSound();
     const FVector SpawnLocation = MuzzleLocation->GetComponentLocation();
     FRotator Rotation = Player->FirstPersonCameraComponent->GetComponentRotation();
 
     if (CanFire(Player))
     {
-        //FireSpread(Rotation, SpawnLocation);
+        FireShotgun(Player);
         FireShotgun(Player);
         ConsumeAmmo(Player);
         ConsumeAmmo(Player);
@@ -172,21 +175,19 @@ void AExpesWeapon::SuperShotgunFire(class AExpesCharacter* Player)
         {
             return;
         }
-
-        //FireSpread(Rotation, SpawnLocation);
-        FireShotgun(Player);
     }
+    PlayFireEffects(Player);
 }
 
 void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
 {
-    const FVector SpawnLocation = MuzzleLocation->GetComponentLocation();
+    FVector Start = Player->FirstPersonCameraComponent->GetComponentLocation();
     FRotator Rotation = Player->FirstPersonCameraComponent->GetComponentRotation();
 
     if (CanFire(Player))
     {
         // create the transient beam actor
-        UParticleSystemComponent* BeamComponentTemp = nullptr;
+        //UParticleSystemComponent* BeamComponentTemp = nullptr;
         //AExpesRailBeam* RailBeamTemp = nullptr;
 
         /*if (RailBeamClass)
@@ -211,27 +212,26 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
         FHitResult Hit(ForceInit);
         FRotationMatrix RotMatrix(Rotation);
 
-        auto End = Rotation.Vector() * Range + SpawnLocation;
-        GetWorld()->LineTraceSingleByChannel(Hit, SpawnLocation, End, ECC_Visibility, TraceParams);
+        FVector End = Player->FirstPersonCameraComponent->GetForwardVector() * Range + Start;
+        GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
 
         if (Hit.bBlockingHit)
         {
-            DrawDebugLine(GetWorld(), SpawnLocation, Hit.Location, FColor::Green, false, 1, 0, 1);
+            DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Green, false, 1, 0, 1);
             DrawDebugSolidBox(GetWorld(), FVector(Hit.Location), FVector(5, 5, 5), FRotationMatrix::MakeFromX(Hit.ImpactNormal).ToQuat(), FColor::Green, false, 1, 0);
 
-            FVector TargetLocation = SpawnLocation + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
+            FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
 
-            if (BeamComponentTemp)
+            /*if (BeamComponentTemp)
             {
                 BeamComponentTemp->SetBeamTargetPoint(0, TargetLocation, 0);
-            }
+            }*/
 
-            return;
         }
         else
         {
-            DrawDebugLine(GetWorld(), SpawnLocation, End, FColor::Red, false, 1, 0, 1);
-            BeamComponentTemp->SetBeamTargetPoint(0, Hit.ImpactPoint, 0);
+            DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1, 0, 1);
+            //BeamComponentTemp->SetBeamTargetPoint(0, Hit.ImpactPoint, 0);
         }
 
         ConsumeAmmo(Player);
@@ -313,6 +313,23 @@ void AExpesWeapon::RocketLauncherFire(class AExpesCharacter* Player)
                 return;
             }
         }
+    }
+}
+
+void AExpesWeapon::PlayFireEffects(class AExpesCharacter* Player)
+{
+    if (Player)
+    {
+        AController* Controller = Player->GetController();
+        AExpesPlayerController* ExpesPlayerController = Cast<AExpesPlayerController>(Controller);
+        UE_LOG(LogTemp, Warning, TEXT("Has player"));
+
+        if (ExpesPlayerController)
+        {
+            ExpesPlayerController->ClientPlayCameraShake(FireCamShake);
+        }
+
+        //ServerPlayFireSound();
     }
 }
 
