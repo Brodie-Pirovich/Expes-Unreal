@@ -17,6 +17,7 @@
 #include "ExpesMovementComponent.h"
 #include "ExpesMovementParameter.h"
 #include "Net/UnrealNetwork.h"
+#include "Animation/AnimSequence.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AExpesCharacter
@@ -93,6 +94,9 @@ AExpesCharacter::AExpesCharacter(const class FObjectInitializer& ObjectInitializ
 	DurationAfterDeathBeforeRespawn = 2.5f;
 
 	MovementParameterQuakeClass = UExpesMovementParameter::StaticClass();
+
+	// Initialize the weapon slots
+	WeaponInventory.Init(NULL, 10);
 }
 
 void AExpesCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -177,22 +181,7 @@ void AExpesCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &AExpesCharacter::NextWeapon);
 	PlayerInputComponent->BindAction("PrevWeapon", IE_Pressed, this, &AExpesCharacter::PrevWeapon);
 
-	// Bind fire event
-	//PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AExpesCharacter::OnFire);
-	//PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &AExpesCharacter::OnFireRelease);
-	//PlayerInputComponent->BindAction("AltFire", EInputEvent::IE_Pressed, this, &AExpesCharacter::OnAltFire);
-	//PlayerInputComponent->BindAction("AltFire", EInputEvent::IE_Released, this, &AExpesCharacter::OnAltFireRelease);
-
 	InputComponent->BindAxis("FireHeld", this, &AExpesCharacter::FireHeld);
-
-	PlayerInputComponent->BindAction("SwitchToRocketLauncher", EInputEvent::IE_Pressed, this, &AExpesCharacter::SwitchToRocketLauncher);
-	PlayerInputComponent->BindAction("SwitchToLightningGun", EInputEvent::IE_Pressed, this, &AExpesCharacter::SwitchToLightningGun);
-	PlayerInputComponent->BindAction("SwitchToRailGun", EInputEvent::IE_Pressed, this, &AExpesCharacter::SwitchToRailGun);
-	PlayerInputComponent->BindAction("SwitchToNailGun", EInputEvent::IE_Pressed, this, &AExpesCharacter::SwitchToNailGun);
-	PlayerInputComponent->BindAction("SwitchToPortalGun", EInputEvent::IE_Pressed, this, &AExpesCharacter::SwitchToPortalGun);
-	PlayerInputComponent->BindAction("SwitchToGrenadeLauncher", EInputEvent::IE_Pressed, this, &AExpesCharacter::SwitchToGrenadeLauncher);
-
-	PlayerInputComponent->BindAction("UseAbility", EInputEvent::IE_Pressed, this, &AExpesCharacter::OnUseAbility);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AExpesCharacter::MoveForward);
@@ -202,8 +191,6 @@ void AExpesCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	PlayerInputComponent->BindAxis("Turn", this, &AExpesCharacter::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &AExpesCharacter::AddControllerPitchInput);
-
-	PlayerInputComponent->BindAction("Debug", EInputEvent::IE_Pressed, this, &AExpesCharacter::OnDebug);
 }
 
 //------------------------------------------------------------
@@ -251,35 +238,6 @@ void AExpesCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
 	}
-}
-
-//------------------------------------------------------------
-// UE_LOG(LogTemp, Warning, TEXT("%s"), *CurrentWeapon->GetName());
-//------------------------------------------------------------
-void AExpesCharacter::OnFire()
-{
-
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::OnFireRelease()
-{
-
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::OnAltFire()
-{
-
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::OnAltFireRelease()
-{
-
 }
 
 //------------------------------------------------------------
@@ -367,13 +325,6 @@ USkeletalMeshComponent* AExpesCharacter::GetThirdPersonMesh()
 UCameraComponent* AExpesCharacter::GetFirstPersonCameraComponent() const
 {
     return FirstPersonCameraComponent;
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::SetCurrentWeapon(const FName& QLName)
-{
-
 }
 
 //------------------------------------------------------------
@@ -489,73 +440,6 @@ AExpesPlayerController* AExpesCharacter::GetQLPlayerController()
 
 //------------------------------------------------------------
 //------------------------------------------------------------
-void AExpesCharacter::SwitchToRocketLauncher()
-{
-    if (bCanSwitchWeapon)
-    {
-        SetCurrentWeapon(FName(TEXT("RocketLauncher")));
-    }
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::SwitchToLightningGun()
-{
-    if (bCanSwitchWeapon)
-    {
-        SetCurrentWeapon(FName(TEXT("LightningGun")));
-    }
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::SwitchToRailGun()
-{
-    if (bCanSwitchWeapon)
-    {
-        SetCurrentWeapon(FName(TEXT("RailGun")));
-    }
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::SwitchToNailGun()
-{
-    if (bCanSwitchWeapon)
-    {
-        SetCurrentWeapon(FName(TEXT("NailGun")));
-    }
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::SwitchToPortalGun()
-{
-    if (bCanSwitchWeapon)
-    {
-        SetCurrentWeapon(FName(TEXT("PortalGun")));
-    }
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::SwitchToGrenadeLauncher()
-{
-    if (bCanSwitchWeapon)
-    {
-        SetCurrentWeapon(FName(TEXT("GrenadeLauncher")));
-    }
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::Die()
-{
-
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::OnDie()
 {
     Destroy();
@@ -565,7 +449,6 @@ void AExpesCharacter::OnDie()
 //------------------------------------------------------------
 void AExpesCharacter::OnRespawnNewCharacter()
 {
-    RespawnCharacterRandomly();
 }
 
 //------------------------------------------------------------
@@ -615,13 +498,6 @@ bool AExpesCharacter::IsAlive()
     {
         return false;
     }
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::OnUseAbility()
-{
-
 }
 
 //------------------------------------------------------------
@@ -677,13 +553,6 @@ void AExpesCharacter::SetWeaponEnabled(const bool bFlag)
 {
     bCanFireAndAltFire = bFlag;
     bCanSwitchWeapon = bFlag;
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-bool AExpesCharacter::HasWeapon(const FName& WeaponName)
-{
-    return 1;
 }
 
 //------------------------------------------------------------
@@ -776,22 +645,9 @@ void AExpesCharacter::EquipAll()
 
 //------------------------------------------------------------
 //------------------------------------------------------------
-void AExpesCharacter::RespawnCharacterRandomly()
-{
-
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::FellOutOfWorld(const UDamageType& dmgType)
 {
-    Die();
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::OnDebug()
-{
+    OnDie();
 }
 
 //------------------------------------------------------------
@@ -847,7 +703,8 @@ void AExpesCharacter::AddWeapon(TSubclassOf<AExpesWeapon> WeaponClass)
 	AExpesWeapon* weapon = GetWorld()->SpawnActor<AExpesWeapon>(WeaponClass);
 	if (weapon)
 	{
-		WeaponInventory.Emplace(weapon);
+		//WeaponInventory.Emplace(weapon);
+		WeaponInventory[weapon->SlotID] = weapon;
 		weapon->SetActorHiddenInGame(true);
 		SetAmmo(weapon->AmmoType, GetAmmo(weapon->AmmoType) + weapon->DefaultAmmo);
 	}
@@ -871,15 +728,13 @@ void AExpesCharacter::NextWeapon()
 	}
 	else
 	{
-		auto inventoryLength = WeaponInventory.Num();
-		if (WeaponIndex == inventoryLength - 1)
-		{
-			WeaponIndex = 0;
-		}
-		else
-		{
-			WeaponIndex++;
-		}
+		WeaponIndex++;
+
+		if (WeaponInventory[WeaponIndex] == NULL)
+			WeaponIndex--;
+
+		if (WeaponIndex >= 9)
+			WeaponIndex = WeaponIndex;
 
 		UpdateCurrentWeapon();
 	}
@@ -903,15 +758,10 @@ void AExpesCharacter::PrevWeapon()
 	}
 	else
 	{
-		auto inventoryLength = WeaponInventory.Num();
-		if (WeaponIndex == 0)
-		{
-			WeaponIndex = inventoryLength - 1;
-		}
-		else
-		{
-			WeaponIndex--;
-		}
+		WeaponIndex--;
+		if (WeaponIndex < 0
+			|| WeaponIndex >= 255)
+			WeaponIndex = 0;
 
 		UpdateCurrentWeapon();
 	}
@@ -1017,6 +867,13 @@ void AExpesCharacter::FireHeld(float Val)
 			WasFiring = false;
 		}
 	}
+
+	/*// Get the animation object for the arms mesh
+	UAnimInstance* AnimInstance = FirstPersonMesh->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->PlaySlotAnimationAsDynamicMontage(FireAnimation, "Arms", 0.0f);
+	}*/
 }
 
 void AExpesCharacter::ServerFireHeld_Implementation(float Val)

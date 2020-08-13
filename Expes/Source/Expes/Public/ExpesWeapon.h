@@ -10,6 +10,7 @@
 class AExpesCharacter;
 class AExpesProjectile;
 class AExpesRocketProjectile;
+class UAnimSequence;
 
 UENUM(BlueprintType)
 enum class EAmmoType : uint8
@@ -107,6 +108,10 @@ public:
 	/** The type of ammo the weapon consumes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
 	EWeaponType WeaponType;
+
+	/** The type of ammo the weapon consumes */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	int SlotID;
 
 	/** The skeletal mesh representing the weapon */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)

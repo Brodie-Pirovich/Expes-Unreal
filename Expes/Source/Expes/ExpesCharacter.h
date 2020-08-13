@@ -36,6 +36,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     USkeletalMeshComponent* GetFirstPersonMesh();
 
+    /** AnimMontage to play each time we fire */
+    UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+    UAnimSequence* FireAnimation;
+
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     USkeletalMeshComponent* GetThirdPersonMesh();
 
@@ -61,13 +65,7 @@ public:
     AExpesPlayerController* GetQLPlayerController();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void SetCurrentWeapon(const FName& QLName);
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
     void SetCurrentMovementStyle(EQLMovementStyle MyStyle);
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void Die();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void OnDie();
@@ -117,9 +115,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     virtual UAnimSequence* PlayAnimationSequence(const FName& AnimationSequenceName);
 
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    bool HasWeapon(const FName& WeaponName);
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
     float Health;
 
@@ -146,19 +141,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void ResetMaxWalkSpeed();
-
-    // Fires a projectile.
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void OnFire();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void OnFireRelease();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void OnAltFire();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void OnAltFireRelease();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     bool QLGetVisibility();
@@ -191,9 +173,6 @@ public:
     void EquipAll();
 
     virtual void FellOutOfWorld(const UDamageType& dmgType) override;
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void OnDebug();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void PlaySoundFireAndForget(const FName& SoundName);
@@ -257,32 +236,8 @@ protected:
     void LookUpAtRate(float Rate);
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void SwitchToRocketLauncher();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void SwitchToLightningGun();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void SwitchToRailGun();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void SwitchToPortalGun();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void SwitchToGrenadeLauncher();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void SwitchToNailGun();
-
-    // Fires a projectile.
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void OnUseAbility();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
     void StopSound();
 
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void RespawnCharacterRandomly();
 protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
