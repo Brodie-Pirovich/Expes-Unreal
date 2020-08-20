@@ -17,7 +17,7 @@
 #include "ExpesMovementComponent.h"
 #include "ExpesMovementParameter.h"
 #include "Net/UnrealNetwork.h"
-#include "Animation/AnimSequence.h"
+#include "Animation/AnimMontage.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AExpesCharacter
@@ -28,7 +28,7 @@
 AExpesCharacter::AExpesCharacter(const class FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UExpesMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
-	Health = 150.0f;
+	Health = 100.0f;
 	MaxHealth = 200.0f;
 	Armor = 100.0f;
 	MaxArmor = 150.0f;
@@ -402,21 +402,21 @@ void AExpesCharacter::TakeDamageQuakeStyle(float ActualDamage)
 //------------------------------------------------------------
 void AExpesCharacter::SetHealthArmorBarVisible(bool bFlag)
 {
-
+	//TODO
 }
 
 //------------------------------------------------------------
 //------------------------------------------------------------
 void AExpesCharacter::UpdateHealth()
 {
-
+	//TODO Update heath UI
 }
 
 //------------------------------------------------------------
 //------------------------------------------------------------
 void AExpesCharacter::UpdateArmor()
 {
-
+	//TODO Update armor UI
 }
 
 //------------------------------------------------------------
@@ -728,15 +728,32 @@ void AExpesCharacter::NextWeapon()
 	}
 	else
 	{
-		WeaponIndex++;
+		for (int32 Index = 0; Index != WeaponInventory.Num(); ++Index)
+		{
+			if (WeaponInventory[Index] != NULL && WeaponInventory[Index]->SlotID > WeaponIndex)
+			{
+				WeaponIndex = WeaponInventory[Index]->SlotID;
+				UpdateCurrentWeapon();
+				return;
+			}
+			else
+			{
+				WeaponIndex = WeaponIndex;
+			}
+		}
+		//WeaponIndex++;
 
-		if (WeaponInventory[WeaponIndex] == NULL)
+		/*if (WeaponInventory[WeaponIndex] == NULL)
+		{
 			WeaponIndex--;
+		}
 
 		if (WeaponIndex >= 9)
+		{
 			WeaponIndex = WeaponIndex;
+		}
 
-		UpdateCurrentWeapon();
+		UpdateCurrentWeapon();*/
 	}
 }
 
@@ -758,12 +775,25 @@ void AExpesCharacter::PrevWeapon()
 	}
 	else
 	{
-		WeaponIndex--;
+		for (int32 Index = WeaponInventory.Num() -1; Index >= 0; --Index)
+		{
+			if (WeaponInventory[Index] != NULL && WeaponInventory[Index]->SlotID < WeaponIndex)
+			{
+				WeaponIndex = WeaponInventory[Index]->SlotID;
+				UpdateCurrentWeapon();
+				return;
+			}
+			else
+			{
+				WeaponIndex = WeaponIndex;
+			}
+		}
+		/*WeaponIndex--;
 		if (WeaponIndex < 0
 			|| WeaponIndex >= 255)
 			WeaponIndex = 0;
 
-		UpdateCurrentWeapon();
+		UpdateCurrentWeapon();*/
 	}
 }
 
@@ -795,6 +825,9 @@ int32 AExpesCharacter::GetAmmo(EAmmoType ammoType)
 		break;
 	case EAmmoType::ERocket:
 		return Rockets;
+		break;
+	case EAmmoType::ESlug:
+		return Slugs;
 		break;
 	default:
 		return 0;
@@ -840,7 +873,11 @@ void AExpesCharacter::SetAmmo(EAmmoType ammoType, int32 value)
 		break;
 	case EAmmoType::ERocket:
 		Rockets = value;
-		Cells = FMath::Clamp(Rockets, 0, Rockets);
+		Rockets = FMath::Clamp(Rockets, 0, Rockets);
+		break;
+	case EAmmoType::ESlug:
+		Slugs = value;
+		Slugs = FMath::Clamp(Slugs, 0, Slugs);
 		break;
 	}
 }
@@ -868,11 +905,11 @@ void AExpesCharacter::FireHeld(float Val)
 		}
 	}
 
-	/*// Get the animation object for the arms mesh
-	UAnimInstance* AnimInstance = FirstPersonMesh->GetAnimInstance();
+	// Get the animation object for the arms mesh
+	/*UAnimInstance* AnimInstance = FirstPersonMesh->GetAnimInstance();
 	if (AnimInstance)
 	{
-		AnimInstance->PlaySlotAnimationAsDynamicMontage(FireAnimation, "Arms", 0.0f);
+		AnimInstance->Montage_Play(FireAnimation, 1.0f);
 	}*/
 }
 
@@ -930,6 +967,8 @@ int32 AExpesCharacter::GetMaxAmmo(EAmmoType ammoType)
 		return MaxCells;
 	case EAmmoType::ERocket:
 		return MaxRockets;
+	case EAmmoType::ESlug:
+		return MaxSlugs;
 	default:
 		return 0;
 	}

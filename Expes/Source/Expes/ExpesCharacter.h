@@ -38,7 +38,7 @@ public:
 
     /** AnimMontage to play each time we fire */
     UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-    UAnimSequence* FireAnimation;
+    UAnimMontage* FireAnimation;
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     USkeletalMeshComponent* GetThirdPersonMesh();
@@ -106,27 +106,32 @@ public:
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void StopGlow();
 
-    //------------------------------------------------------------
-    // Enable or disable weapon switch, fire and alt fire
-    //------------------------------------------------------------
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void SetWeaponEnabled(const bool bFlag);
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     virtual UAnimSequence* PlayAnimationSequence(const FName& AnimationSequenceName);
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     float Health;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     float MaxHealth;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     float Armor;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     float MaxArmor;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    bool bHasRedKey;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    bool bHasBlueKey;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    bool bHasYellowKey;
     //------------------------------------------------------------
     // Differentiate human player from AI bots
     //------------------------------------------------------------
@@ -294,15 +299,15 @@ protected:
     // Weapon Stuff
     public:
         /** Returns the ammo count of the specified ammo type */
-        UFUNCTION(BlueprintCallable, Category = Ammo)
+        UFUNCTION(BlueprintCallable, Category = "Ammo")
         int32 GetAmmo(EAmmoType ammoType);
 
         /** Returns the ammo count of the currently equipped weapon */
-        UFUNCTION(BlueprintCallable, Category = Ammo)
+        UFUNCTION(BlueprintCallable, Category = "Ammo")
         int32 GetCurrentWeaponAmmo();
 
         /** Returns the maximum ammo of the currently equipped weapon */
-        UFUNCTION(BlueprintCallable, Category = Ammo)
+        UFUNCTION(BlueprintCallable, Category = "Ammo")
         int32 GetCurrentWeaponMaxAmmo();
 
         /** Sets the ammo count of the specified ammo type to the specified value, clamping between 0 and max */
@@ -315,55 +320,55 @@ protected:
         //bool PickupArmour(int32 Armour, EArmourType ArmourType);
 
         /** The starting inventory of the player */
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Inventory)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Inventory")
         TArray<TSubclassOf<class AExpesWeapon>> DefaultInventory;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Inventory)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
         /** The index of the default weapon. Should be 1 for the Shotgun */
         int32 DefaultWeaponIndex;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The number of Shells the player has */
         int32 Shells;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
         /** The maximum number of Shells the player can carry */
         int32 MaxShells;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The number of Nails the player has */
         int32 Bullets;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
         /** The maximum number of Nails the player can carry */
         int32 MaxBullets;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The number of Cells the player has */
         int32 Cells;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The maximum number of Cells the player can carry */
         int32 MaxCells;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The number of Cells the player has */
         int32 Rockets;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The maximum number of Cells the player can carry */
         int32 MaxRockets;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The number of Slugs the player has */
          int32 Slugs;
 
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Ammo)
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ammo")
         /** The maximum number of Slugs the player can carry */
         int32 MaxSlugs;
 
         /** The current inventory of the player */
-        UPROPERTY(VisibleAnywhere, Replicated, Category = Inventory)
+        UPROPERTY(VisibleAnywhere, Replicated, Category = "Inventory")
         TArray<AExpesWeapon*> WeaponInventory;
 
         private:

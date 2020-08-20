@@ -41,8 +41,6 @@ void AExpesWeapon::Tick(float DeltaTime)
 	{
 		RemainingReloadTime -= DeltaTime;
 	}
-
-    UE_LOG(LogTemp, Warning, TEXT("%f"), RemainingReloadTime);
 }
 
 void AExpesWeapon::Fire(class AExpesCharacter* player)

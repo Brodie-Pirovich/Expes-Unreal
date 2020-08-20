@@ -87,7 +87,7 @@ void AExpesProjectile::OnBeginOverlapForComponent(UPrimitiveComponent* Overlappe
 
         HandleSplashHit(OtherActor, bIsDirectHit);
 
-        DrawDebugSphere(GetWorld(), GetActorLocation(), BlastRadius, 20, FColor::Red, false, 10, 0, 1);
+        //DrawDebugSphere(GetWorld(), GetActorLocation(), BlastRadius, 20, FColor::Red, false, 10, 0, 1);
         Destroy();
     }
 }
