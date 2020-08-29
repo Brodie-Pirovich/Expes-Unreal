@@ -5,12 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/TimelineComponent.h"
+#include "RailBeam.h"
 #include "ExpesWeapon.generated.h"
 
 class AExpesCharacter;
 class AExpesProjectile;
 class AExpesRocketProjectile;
-class UAnimSequence;
+class UAnimMontage;
+class UParticalSystem;
 
 UENUM(BlueprintType)
 enum class EAmmoType : uint8
@@ -53,11 +55,7 @@ public:
 
 	virtual void Fire(class AExpesCharacter* Player);
 
-	virtual void FireSpread(FRotator Rotation, FVector MuzzleLocation);
-
 	virtual void FireShotgun(class AExpesCharacter* Player);
-
-	virtual void EndFire();
 
 	virtual void ShotgunFire(class AExpesCharacter* Player);
 
@@ -148,4 +146,31 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
 	float ProjectileSpeed;
+
+	void PlayFireEffects(FVector TraceEnd);
+
+	void PlayImpactEffects(FVector ImpactPoint);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* MuzzleEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* DefaultImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* TracerEffect;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName MuzzleSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName TracerTargetName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "C++Property")
+	TSubclassOf<ARailBeam> RailBeamClass;
+
+	virtual void PlayAnimationMontage(class AExpesCharacter* Player);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UAnimMontage* FireAnimation;
 };

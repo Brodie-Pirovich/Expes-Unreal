@@ -201,7 +201,9 @@ void AExpesProjectile::HandleSplashHit(AActor* OtherActor, bool bDirectHit)
                 DamageEvent.Params.OuterRadius = BlastRadius;
                 DamageEvent.Params.MinimumDamage = 0.0;
 
-                DamageAmount = Character->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
+                //DamageAmount = Character->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
+                Character->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
+
             }
             else
             {

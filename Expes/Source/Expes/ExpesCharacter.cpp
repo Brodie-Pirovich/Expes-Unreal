@@ -359,6 +359,28 @@ FHitResult AExpesCharacter::RayTraceFromCharacterPOV(float rayTraceRange)
 //------------------------------------------------------------
 float AExpesCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// if the character is already dead, no further damage
+	if (Health <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	if (DamageAmount > 0.0f)
+	{
+		TakeDamageQuakeStyle(DamageAmount);
+		Health -= DamageAmount;
+
+		UpdateArmor();
+
+		UpdateHealth();
+
+		if (Health <= 0.0f)
+		{
+			OnDie();
+		}
+	}
     return DamageAmount;
 }
 
@@ -900,7 +922,6 @@ void AExpesCharacter::FireHeld(float Val)
 	{
 		if (WasFiring)
 		{
-			CurrentWeapon->EndFire();
 			WasFiring = false;
 		}
 	}
