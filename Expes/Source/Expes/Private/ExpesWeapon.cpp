@@ -101,8 +101,8 @@ void AExpesWeapon::FireShotgun(AExpesCharacter* Player)
         GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECC_Visibility, TraceParams);
         if (hitResult.bBlockingHit)
         {
-            DrawDebugLine(GetWorld(), start, hitResult.Location, FColor::Green, false, 1, 0, 1);
-            DrawDebugSolidBox(GetWorld(), FVector(hitResult.Location), FVector(5, 5, 5), FRotationMatrix::MakeFromX(hitResult.ImpactNormal).ToQuat(), FColor::Green, false, 1, 0);
+            //DrawDebugLine(GetWorld(), start, hitResult.Location, FColor::Green, false, 1, 0, 1);
+            //DrawDebugSolidBox(GetWorld(), FVector(hitResult.Location), FVector(5, 5, 5), FRotationMatrix::MakeFromX(hitResult.ImpactNormal).ToQuat(), FColor::Green, false, 1, 0);
 
             PlayImpactEffects(hitResult.ImpactPoint);
 
@@ -110,7 +110,7 @@ void AExpesWeapon::FireShotgun(AExpesCharacter* Player)
         }
         else
         {
-            DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1, 0, 1);
+            //DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1, 0, 1);
         }
         PlayFireEffects(TracerEndPoint);
     }
@@ -118,13 +118,11 @@ void AExpesWeapon::FireShotgun(AExpesCharacter* Player)
 
 void AExpesWeapon::ShotgunFire(class AExpesCharacter* Player)
 {
-    const FVector SpawnLocation = MuzzleLocation->GetComponentLocation();
-    //FRotator Rotation = Player->FirstPersonCameraComponent->GetComponentRotation();
-
     if (CanFire(Player))
     {
         FireShotgun(Player);
         ConsumeAmmo(Player);
+        Player->PlaySoundFireAndForget("Shotgunfire");
         RemainingReloadTime = ReloadTime;
 
         if (Player->GetAmmo(AmmoType) <= 0)
@@ -132,19 +130,18 @@ void AExpesWeapon::ShotgunFire(class AExpesCharacter* Player)
             return;
         }
     }
+    PlayFireEffects(Player);
 }
 
 void AExpesWeapon::SuperShotgunFire(class AExpesCharacter* Player)
 {
-    const FVector SpawnLocation = MuzzleLocation->GetComponentLocation();
-    FRotator Rotation = Player->FirstPersonCameraComponent->GetComponentRotation();
-
     if (CanFire(Player))
     {
         FireShotgun(Player);
         FireShotgun(Player);
         ConsumeAmmo(Player);
         ConsumeAmmo(Player);
+        Player->PlaySoundFireAndForget("SuperShotgunfire");
 
         RemainingReloadTime = ReloadTime;
 
@@ -159,6 +156,7 @@ void AExpesWeapon::SuperShotgunFire(class AExpesCharacter* Player)
 void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
 {
     PlayAnimationMontage(Player);
+    PlayFireEffects(Player);
 
     FVector Start = Player->FirstPersonCameraComponent->GetComponentLocation();
     FRotator Rotation = Player->FirstPersonCameraComponent->GetComponentRotation();
@@ -196,8 +194,8 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
 
         if (Hit.bBlockingHit)
         {
-            DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Green, false, 1, 0, 1);
-            DrawDebugSolidBox(GetWorld(), FVector(Hit.Location), FVector(5, 5, 5), FRotationMatrix::MakeFromX(Hit.ImpactNormal).ToQuat(), FColor::Green, false, 1, 0);
+           // DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Green, false, 1, 0, 1);
+            //DrawDebugSolidBox(GetWorld(), FVector(Hit.Location), FVector(5, 5, 5), FRotationMatrix::MakeFromX(Hit.ImpactNormal).ToQuat(), FColor::Green, false, 1, 0);
 
             FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
 
@@ -213,12 +211,13 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
         else
         {
             FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
-            DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1, 0, 1);
+            //DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1, 0, 1);
             //BeamComponentTemp->SetBeamTargetPoint(0, TargetLocation, 0);
             PlayFireEffects(TargetLocation);
         }
 
         ConsumeAmmo(Player);
+        Player->PlaySoundFireAndForget("RailgunFire");
         RemainingReloadTime = ReloadTime;
 
         if (Player->GetAmmo(AmmoType) <= 0)
@@ -264,6 +263,7 @@ void AExpesWeapon::RocketLauncherFire(class AExpesCharacter* Player)
     UWorld* const World = GetWorld();
 
     PlayFireEffects(TargetLocation);
+    PlayFireEffects(Player);
 
     if (RocketProjectileClass && World)
     {
@@ -276,8 +276,6 @@ void AExpesWeapon::RocketLauncherFire(class AExpesCharacter* Player)
         {
             FTransform MyTransform(SourceRotation, SourceLocation, FVector(1.0f));
             AExpesRocketProjectile* Rocket = GetWorld()->SpawnActorDeferred<AExpesRocketProjectile>(RocketProjectileClass, MyTransform);
-            //AExpesRocketProjectile* Rocket = GetWorld()->SpawnActor<AExpesRocketProjectile>(RocketProjectileClass, MyTransform);
-
             ProjectileSpeed = 3000.0f;
 
             // pass controller to rocket as damage instigator
@@ -294,6 +292,7 @@ void AExpesWeapon::RocketLauncherFire(class AExpesCharacter* Player)
             Rocket->GetProjectileMovementComponent()->Velocity = FinalVelocity;
 
             ConsumeAmmo(Player);
+            Player->PlaySoundFireAndForget("RocketFire");
             RemainingReloadTime = ReloadTime;
 
             if (Player->GetAmmo(AmmoType) <= 0)
@@ -310,14 +309,11 @@ void AExpesWeapon::PlayFireEffects(class AExpesCharacter* Player)
     {
         AController* Controller = Player->GetController();
         AExpesPlayerController* ExpesPlayerController = Cast<AExpesPlayerController>(Controller);
-        UE_LOG(LogTemp, Warning, TEXT("Has player"));
 
         if (ExpesPlayerController)
         {
             ExpesPlayerController->ClientPlayCameraShake(FireCamShake);
         }
-
-        //ServerPlayFireSound();
     }
 }
 
@@ -333,16 +329,6 @@ bool AExpesWeapon::CanFire(class AExpesCharacter* player)
         return false;
     }
 
-    return true;
-}
-
-void AExpesWeapon::ServerPlayFireSound_Implementation()
-{
-    UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-}
-
-bool AExpesWeapon::ServerPlayFireSound_Validate()
-{
     return true;
 }
 

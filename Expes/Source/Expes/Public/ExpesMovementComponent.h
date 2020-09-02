@@ -32,9 +32,11 @@ public:
 
     virtual void CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration) override;
 
-    virtual void QueueJump();
+    //virtual void QueueJump();
 
 protected:
+    void ReinitializeParameter(float DeltaTime);
+
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
@@ -45,8 +47,18 @@ protected:
 
     void PrepareForNextFrame();
 
+    void HandleAirStrafeForVanilla(float MaxSpeed, float DeltaTime, float Friction, float BrakingDeceleration);
+
+    void HandleAirStrafeForCPMA(float MaxSpeed, float DeltaTime, float Friction, float BrakingDeceleration);
+
     // If the player has already landed for a frame, and breaking may be applied.
     bool bFallingLastFrame;
+
+    bool bJustlanded;
+
+    // If the player is exempt from ground friction in the current frame
+  // reset this counter to zero
+    uint64 trailingFrameCounter;
 
     // The multiplier for acceleration when on ground.
     UPROPERTY()
@@ -60,10 +72,26 @@ protected:
     float SpeedUpperLimit;
 
     UPROPERTY()
+    float NumOfJumpRequestToleranceTimeInterval;
+
+    UPROPERTY()
     int NumOfJumpRequestToleranceFrames;
 
     UPROPERTY()
+    float NumOfTrailingTimeInterval;
+
+    int NumOfTrailingFrame;
+
+    UPROPERTY()
     float PenaltyScaleFactorForHoldingJumpButton;
+
+    UPROPERTY()
+    float PenaltyScaleFactorForUnchainedStrafeJump;
+
+    float PenaltyForUnchainedStrafeJumpReductionPerFrame;
+    float PenaltyForUnchainedStrafeJumpCurrent;
+
+    FVector VelocityCached;
 
     // in the last k frames, if the jump button has been pressed
     bool bHasJumpPressed;
@@ -85,5 +113,11 @@ protected:
 
     TWeakObjectPtr<AExpesCharacter> MyCharacter;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     EQLMovementStyle MovementStyle;
+
+    float elapsedTime;
+
+    // movement parameters are reinitialized every x seconds
+    float reinitializeMovementParameterTimeInterval;
 };

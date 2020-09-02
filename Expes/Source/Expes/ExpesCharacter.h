@@ -16,6 +16,8 @@ class AExpesPlayerController;
 class ExpesMovementStyle;
 class UCameraComponent;
 class AExpesWeapon;
+class USoundCue;
+class UTexture2D;
 
 UCLASS(config=Game)
 class AExpesCharacter : public ACharacter
@@ -27,7 +29,7 @@ public:
     AExpesCharacter(const class FObjectInitializer& ObjectInitializer);
 
     // Called every frame
-    // virtual void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     FHitResult RayTraceFromCharacterPOV(float rayTraceRange = 1e5f);
@@ -60,6 +62,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void UpdateArmor();
+
+    UFUNCTION(BlueprintCallable, Category = "C++Function")
+    float UpdateAmmo();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     AExpesPlayerController* GetQLPlayerController();
@@ -243,6 +248,19 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void StopSound();
 
+public:
+    UFUNCTION(BlueprintCallable, Category = "C++Function")
+        float GetMoveForwardInputValue();
+
+    UFUNCTION(BlueprintCallable, Category = "C++Function")
+        float GetMoveRightInputValue();
+
+    UPROPERTY()
+        float moveForwardInputValue;
+
+    UPROPERTY()
+        float moveRightInputValue;
+
 protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
@@ -263,6 +281,9 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
     TMap<FName, USoundBase*> SoundList;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
+    TMap<FName, USoundCue*> SoundcueList;
 
     UPROPERTY()
     bool bCanFireAndAltFire;
@@ -371,6 +392,12 @@ protected:
         UPROPERTY(VisibleAnywhere, Replicated, Category = "Inventory")
         TArray<AExpesWeapon*> WeaponInventory;
 
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+        UTexture2D* HUDAmmoTexture;
+
+        UFUNCTION(BlueprintCallable, Category = "C++Function")
+        void UpdateAmmoTexture();
+
         private:
             /** The currently equipped weapon */
             UPROPERTY(Replicated)
@@ -406,6 +433,11 @@ protected:
         void ServerPrevWeapon_Implementation();
         bool ServerPrevWeapon_Validate();
 
+        void SwitchToShotgun();
+        void SwitchToSuperShotgun();
+        void SwitchToRocketLauncher();
+        void SwitchToRailgun();
+
         void FireHeld(float Val);
         UFUNCTION(Server, Reliable, WithValidation)
         void ServerFireHeld(float Val);
@@ -423,5 +455,21 @@ protected:
 
         /** Returns Mesh1P subobject **/
         FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return FirstPersonMesh; }
+
+    protected:
+        bool bWantsToZoom;
+
+        UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+        float ZoomedFOV;
+
+        UPROPERTY(EditDefaultsOnly, Category = "Gameplay", meta = (ClampMin = 0.1, ClampMax = 100))
+        float ZoomInterpSpeed;
+
+        /* Default FOV set during begin play */
+        float DefaultFOV;
+
+        void BeginZoom();
+
+        void EndZoom();
 };
 

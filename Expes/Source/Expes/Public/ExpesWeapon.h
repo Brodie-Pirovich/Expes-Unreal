@@ -12,7 +12,7 @@ class AExpesCharacter;
 class AExpesProjectile;
 class AExpesRocketProjectile;
 class UAnimMontage;
-class UParticalSystem;
+class UTexture2D;
 
 UENUM(BlueprintType)
 enum class EAmmoType : uint8
@@ -107,6 +107,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
 	EWeaponType WeaponType;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	UTexture2D* AmmoTexture;
+
 	/** The type of ammo the weapon consumes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
 	int SlotID;
@@ -130,12 +133,6 @@ public:
 	/** The default amount of ammo the weapon holds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Ammo)
 	int32 DefaultAmmo;
-
-	/** Plays the weapon fire sound */
-	UFUNCTION(NetMulticast, Unreliable, WithValidation)
-	void ServerPlayFireSound();
-	void ServerPlayFireSound_Implementation();
-	bool ServerPlayFireSound_Validate();
 
 protected:
 	/** The time until the weapon can fire again */

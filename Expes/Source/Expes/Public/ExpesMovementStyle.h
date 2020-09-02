@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ExpesMovementStyle.generated.h"
 
 //------------------------------------------------------------
 //------------------------------------------------------------

@@ -42,13 +42,25 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
     float SpeedUpperLimit;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
-    int NumOfJumpRequestToleranceFrames;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property|Common")
+    float NumOfJumpRequestToleranceTimeInterval;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property|VanillaQuake3")
+    float NumOfTrailingTimeInterval;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property|VanillaQuake3")
+    float BrakingDecelerationChainStrafeJump;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property|Common")
     float BrakingDecelerationWalking;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property|Common")
     float PenaltyScaleFactorForHoldingJumpButton;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property|Common")
+    float PenaltyScaleFactorForUnchainedStrafeJump;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Property|Common")
+    float JumpZVelocity;
 	
 };

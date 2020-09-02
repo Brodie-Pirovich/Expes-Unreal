@@ -18,6 +18,7 @@
 #include "ExpesMovementParameter.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimMontage.h"
+#include "Sound/SoundCue.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AExpesCharacter
@@ -97,6 +98,9 @@ AExpesCharacter::AExpesCharacter(const class FObjectInitializer& ObjectInitializ
 
 	// Initialize the weapon slots
 	WeaponInventory.Init(NULL, 10);
+
+	ZoomedFOV = 65.0f;
+	ZoomInterpSpeed = 20;
 }
 
 void AExpesCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -115,10 +119,24 @@ void AExpesCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
+	DefaultFOV = FirstPersonCameraComponent->FieldOfView;
+
 	CreateInventory();
 
 	UpdateHealth();
 	UpdateArmor();
+	UpdateAmmoTexture();
+}
+
+// Called every frame
+void AExpesCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
+	float NewFOV = FMath::FInterpTo(FirstPersonCameraComponent->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
+
+	FirstPersonCameraComponent->SetFieldOfView(NewFOV);
 }
 
 //------------------------------------------------------------
@@ -144,12 +162,6 @@ void AExpesCharacter::PostInitializeComponents()
 	QLSetVisibility(bQLIsVisible);
 	QLSetVulnerability(bQLIsVulnerable);
 
-	// movement data
-	// If the movement data is instantiated using
-	// NewObject<UQLMovementParameterQuake>(this, MovementParameterQuakeClass->GetFName()),
-	// at runtime the default movement data will always be used.
-	// To let the movement data be conveniently editable via blueprint subclass,
-	// the function call must follow this form:
 	MovementParameterQuake = NewObject<UExpesMovementParameter>(this,
 	MovementParameterQuakeClass->GetFName(),
 	EObjectFlags::RF_NoFlags,
@@ -180,8 +192,14 @@ void AExpesCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 
 	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &AExpesCharacter::NextWeapon);
 	PlayerInputComponent->BindAction("PrevWeapon", IE_Pressed, this, &AExpesCharacter::PrevWeapon);
+	PlayerInputComponent->BindAction("Shotgun", IE_Pressed, this, &AExpesCharacter::SwitchToShotgun);
+	PlayerInputComponent->BindAction("Supershotgun", IE_Pressed, this, &AExpesCharacter::SwitchToSuperShotgun);
+	PlayerInputComponent->BindAction("RocketLauncher", IE_Pressed, this, &AExpesCharacter::SwitchToRocketLauncher);
+	PlayerInputComponent->BindAction("Railgun", IE_Pressed, this, &AExpesCharacter::SwitchToRailgun);
 
 	InputComponent->BindAxis("FireHeld", this, &AExpesCharacter::FireHeld);
+	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &AExpesCharacter::BeginZoom);
+	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &AExpesCharacter::EndZoom);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AExpesCharacter::MoveForward);
@@ -227,6 +245,8 @@ void AExpesCharacter::MoveForward(float Value)
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
 	}
+
+	moveForwardInputValue = Value;
 }
 
 //------------------------------------------------------------
@@ -238,6 +258,18 @@ void AExpesCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
 	}
+
+	moveRightInputValue = Value;
+}
+
+float AExpesCharacter::GetMoveForwardInputValue()
+{
+	return moveForwardInputValue;
+}
+
+float AExpesCharacter::GetMoveRightInputValue()
+{
+	return moveRightInputValue;
 }
 
 //------------------------------------------------------------
@@ -370,7 +402,6 @@ float AExpesCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 	if (DamageAmount > 0.0f)
 	{
 		TakeDamageQuakeStyle(DamageAmount);
-		Health -= DamageAmount;
 
 		UpdateArmor();
 
@@ -431,14 +462,20 @@ void AExpesCharacter::SetHealthArmorBarVisible(bool bFlag)
 //------------------------------------------------------------
 void AExpesCharacter::UpdateHealth()
 {
-	//TODO Update heath UI
+	//return health;
 }
 
 //------------------------------------------------------------
 //------------------------------------------------------------
 void AExpesCharacter::UpdateArmor()
 {
-	//TODO Update armor UI
+	//return armour;
+}
+
+float AExpesCharacter::UpdateAmmo()
+{
+	EAmmoType AmmoTag = CurrentWeapon->AmmoType;
+	return GetAmmo(AmmoTag);
 }
 
 //------------------------------------------------------------
@@ -541,10 +578,10 @@ void AExpesCharacter::PlaySoundFireAndForget(const FName& SoundName)
 //------------------------------------------------------------
 void AExpesCharacter::PlaySound(const FName& SoundName)
 {
-    USoundBase** Result = SoundList.Find(SoundName);
+    USoundCue** Result = SoundcueList.Find(SoundName);
     if (Result)
     {
-        USoundBase* Sound = *Result;
+		USoundCue* Sound = *Result;
         if (Sound)
         {
             SoundComponent->SetSound(Sound);
@@ -720,6 +757,11 @@ void AExpesCharacter::CreateInventory()
 	}
 }
 
+void AExpesCharacter::UpdateAmmoTexture()
+{
+	HUDAmmoTexture = CurrentWeapon->AmmoTexture;
+}
+
 void AExpesCharacter::AddWeapon(TSubclassOf<AExpesWeapon> WeaponClass)
 {
 	AExpesWeapon* weapon = GetWorld()->SpawnActor<AExpesWeapon>(WeaponClass);
@@ -829,6 +871,59 @@ bool AExpesCharacter::ServerPrevWeapon_Validate()
 	return true;
 }
 
+void AExpesCharacter::SwitchToShotgun()
+{
+	if (WeaponInventory[0] != NULL)
+	{
+		WeaponIndex = 0;
+		UpdateCurrentWeapon();
+	}
+	else
+	{
+		return;
+	}
+}
+
+void AExpesCharacter::SwitchToSuperShotgun()
+{
+	if (WeaponInventory[1] != NULL)
+	{
+		WeaponIndex = 1;
+		UpdateCurrentWeapon();
+	}
+	else
+	{
+		return;
+	}
+}
+
+void AExpesCharacter::SwitchToRocketLauncher()
+{
+	if (WeaponInventory[4] != NULL)
+	{
+		WeaponIndex = 4;
+		UpdateCurrentWeapon();
+	}
+	else
+	{
+		return;
+	}
+
+}
+
+void AExpesCharacter::SwitchToRailgun()
+{
+	if (WeaponInventory[6] != NULL)
+	{
+		WeaponIndex = 6;
+		UpdateCurrentWeapon();
+	}
+	else
+	{
+		return;
+	}
+}
+
 int32 AExpesCharacter::GetAmmo(EAmmoType ammoType)
 {
 	switch (ammoType)
@@ -925,13 +1020,6 @@ void AExpesCharacter::FireHeld(float Val)
 			WasFiring = false;
 		}
 	}
-
-	// Get the animation object for the arms mesh
-	/*UAnimInstance* AnimInstance = FirstPersonMesh->GetAnimInstance();
-	if (AnimInstance)
-	{
-		AnimInstance->Montage_Play(FireAnimation, 1.0f);
-	}*/
 }
 
 void AExpesCharacter::ServerFireHeld_Implementation(float Val)
@@ -1005,4 +1093,16 @@ void AExpesCharacter::UpdateCurrentWeapon()
 	CurrentWeapon = WeaponInventory[WeaponIndex];
 	CurrentWeapon->SetActorHiddenInGame(false);
 	CurrentWeapon->AttachToComponent(FirstPersonMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	UpdateAmmoTexture();
+}
+
+void AExpesCharacter::BeginZoom()
+{
+	bWantsToZoom = true;
+}
+
+
+void AExpesCharacter::EndZoom()
+{
+	bWantsToZoom = false;
 }

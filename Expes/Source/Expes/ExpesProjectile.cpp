@@ -291,7 +291,7 @@ void AExpesProjectile::PlaySoundFireAndForget(const FName& SoundName)
     USoundBase** Result = SoundList.Find(SoundName);
     if (Result)
     {
-        /*USoundBase* Sound = *Result;
+        USoundBase* Sound = *Result;
         if (Sound && SoundAttenuation)
         {
             UGameplayStatics::PlaySoundAtLocation(GetWorld(),
@@ -302,7 +302,7 @@ void AExpesProjectile::PlaySoundFireAndForget(const FName& SoundName)
                 1.0f, // PitchMultiplier
                 0.0f, // StartTime
                 SoundAttenuation);
-        }*/
+        }
     }
 }
 
