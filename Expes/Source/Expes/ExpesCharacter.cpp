@@ -169,6 +169,10 @@ void AExpesCharacter::PostInitializeComponents()
 
 	if (MovementParameterQuake)
 	{
+		if (bIsAI)
+		{
+			MovementParameterQuake->MaxAcceleration = 2200;
+		}
 		UPawnMovementComponent* MyMovementComp = GetMovementComponent();
 		UExpesMovementComponent* MyMovementCompQuake = Cast<UExpesMovementComponent>(MyMovementComp);
 		if (MyMovementCompQuake)
@@ -274,9 +278,10 @@ float AExpesCharacter::GetMoveRightInputValue()
 
 //------------------------------------------------------------
 //------------------------------------------------------------
-float AExpesCharacter::GetHealth() const
+int AExpesCharacter::GetHealth() const
 {
-	return Health;
+	int HealthText = Health;
+	return HealthText;
 }
 
 //------------------------------------------------------------
@@ -306,9 +311,10 @@ float AExpesCharacter::GetMaxHealth() const
 
 //------------------------------------------------------------
 //------------------------------------------------------------
-float AExpesCharacter::GetArmor() const
+int AExpesCharacter::GetArmor() const
 {
-	return Armor;
+	int ArmorText = Armor;
+	return ArmorText;
 }
 
 //------------------------------------------------------------
@@ -399,9 +405,41 @@ float AExpesCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 		return 0.0f;
 	}
 
-	if (DamageAmount > 0.0f)
+	// handle point damage
+	if (DamageEvent.GetTypeID() == FPointDamageEvent::ClassID)
 	{
-		TakeDamageQuakeStyle(DamageAmount);
+		// adjust damage according to ProtectionMultiplier
+		ActualDamage *= ProtectionMultiplier;
+	}
+	// handle radial damage
+	else if (DamageEvent.GetTypeID() == FRadialDamageEvent::ClassID)
+	{
+		FRadialDamageEvent const* RadialDamageEventPtr = static_cast<FRadialDamageEvent const*>(&DamageEvent);
+
+		FVector Temp = DamageCauser->GetActorLocation() - GetActorLocation();
+		float Distance = Temp.Size();
+
+		// linear interpolation
+		// y = MaxDamage at x = 0
+		// y = MinDamage at x = BlastRadius
+		// y = ? at x = Distance
+		// also adjust damage according to ProtectionMultiplier
+
+		float MinDamage = ProtectionMultiplier * RadialDamageEventPtr->Params.MinimumDamage;
+		float MaxDamage = ProtectionMultiplier * RadialDamageEventPtr->Params.BaseDamage;
+		ActualDamage = (MinDamage - MaxDamage) / RadialDamageEventPtr->Params.OuterRadius * Distance + MaxDamage;
+
+		if (ActualDamage < 0.0f)
+		{
+			ActualDamage = 0.0f;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Damge is: %f"), ActualDamage);
+
+	if (ActualDamage > 0.0f)
+	{
+		TakeDamageQuakeStyle(ActualDamage);
 
 		UpdateArmor();
 
@@ -412,7 +450,7 @@ float AExpesCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 			OnDie();
 		}
 	}
-    return DamageAmount;
+    return ActualDamage;
 }
 
 //------------------------------------------------------------
@@ -1092,7 +1130,14 @@ void AExpesCharacter::UpdateCurrentWeapon()
 	}
 	CurrentWeapon = WeaponInventory[WeaponIndex];
 	CurrentWeapon->SetActorHiddenInGame(false);
-	CurrentWeapon->AttachToComponent(FirstPersonMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	if (bIsAI == false)
+	{
+		CurrentWeapon->AttachToComponent(FirstPersonMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	}
+	else
+	{
+		CurrentWeapon->AttachToComponent(ThirdPersonMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	}
 	UpdateAmmoTexture();
 }
 

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/TimelineComponent.h"
-#include "RailBeam.h"
 #include "ExpesWeapon.generated.h"
 
 class AExpesCharacter;
@@ -22,7 +21,8 @@ enum class EAmmoType : uint8
 	EBullet       UMETA(DisplayName = "Bullets"),
 	ECell       UMETA(DisplayName = "Cells"),
 	ERocket       UMETA(DisplayName = "Rocket"),
-	ESlug      UMETA(DisplayName = "Slug")
+	ESlug      UMETA(DisplayName = "Slug"),
+	EAI      UMETA(DisplayName = "AI")
 };
 
 UENUM(BlueprintType)
@@ -33,7 +33,8 @@ enum class EWeaponType : uint8
 	ESShotgun       UMETA(DisplayName = "Supershotgun"),
 	ECell       UMETA(DisplayName = "Firegun"),
 	ERocket       UMETA(DisplayName = "RocketLauncher"),
-	ERail      UMETA(DisplayName = "Railgun")
+	ERail      UMETA(DisplayName = "Railgun"),
+	EAIGun      UMETA(DisplayName = "AIGun")
 };
 
 UCLASS()
@@ -55,6 +56,8 @@ public:
 
 	virtual void Fire(class AExpesCharacter* Player);
 
+	virtual void AIFire(class AExpesCharacter* Player);
+
 	virtual void FireShotgun(class AExpesCharacter* Player);
 
 	virtual void ShotgunFire(class AExpesCharacter* Player);
@@ -67,6 +70,8 @@ public:
 
 	virtual void PlayFireEffects(class AExpesCharacter* Player);
 
+	virtual void HandleDamage(class AExpesCharacter* Player, FHitResult Hit);
+
 protected:
 	/** Returns whether or not the weapon is able to fire */
 	bool CanFire(class AExpesCharacter* Player);
@@ -78,6 +83,11 @@ protected:
 	TSubclassOf<UCameraShake> FireCamShake;
 
 public:
+
+	/** The damage per round */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Ammo)
+	bool b_IsAI = false;
+
 	/** The damage per round */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Ammo)
 	int32 Damage;
@@ -162,9 +172,6 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName TracerTargetName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "C++Property")
-	TSubclassOf<ARailBeam> RailBeamClass;
 
 	virtual void PlayAnimationMontage(class AExpesCharacter* Player);
 

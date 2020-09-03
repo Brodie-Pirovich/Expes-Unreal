@@ -82,7 +82,7 @@ public:
     bool IsAlive();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
-    float GetHealth() const;
+    int GetHealth() const;
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void AddHealth(float Increment);
@@ -91,7 +91,7 @@ public:
     float GetMaxHealth() const;
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
-    float GetArmor() const;
+    int GetArmor() const;
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void AddArmor(float Increment);
@@ -137,6 +137,10 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     bool bHasYellowKey;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "C++Function")
+    bool bIsAI = false;
+
     //------------------------------------------------------------
     // Differentiate human player from AI bots
     //------------------------------------------------------------
@@ -438,18 +442,17 @@ protected:
         void SwitchToRocketLauncher();
         void SwitchToRailgun();
 
-        void FireHeld(float Val);
-        UFUNCTION(Server, Reliable, WithValidation)
-        void ServerFireHeld(float Val);
-        void ServerFireHeld_Implementation(float Val);
-        bool ServerFireHeld_Validate(float Val);
-
         /** Returns the maximum ammo capacity of the specified ammo type */
         int32 GetMaxAmmo(EAmmoType AmmoType);
 
         void UpdateCurrentWeapon();
 
     public:
+        void FireHeld(float Val);
+        UFUNCTION(Server, Reliable, WithValidation)
+        void ServerFireHeld(float Val);
+        void ServerFireHeld_Implementation(float Val);
+        bool ServerFireHeld_Validate(float Val);
         /** Returns FirstPersonCameraComponent subobject **/
         FORCEINLINE class UCameraComponent* GetFPCameraComponent() const { return FirstPersonCameraComponent; }
 

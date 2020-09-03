@@ -18,7 +18,7 @@ void ABaseWeaponPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
     if (OtherActor->IsA(AExpesCharacter::StaticClass()))
     {
         AExpesCharacter* player = Cast<AExpesCharacter>(OtherActor);
-        if (player)
+        if (player->bIsAI == false)
         {
             if (player->PickupWeapon(Weapon))
             {
@@ -29,6 +29,10 @@ void ABaseWeaponPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
                 Destroy();
             }
+        }
+        else
+        {
+            return;
         }
     }
 }

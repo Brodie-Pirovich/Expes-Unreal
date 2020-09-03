@@ -50,7 +50,11 @@ void AExpesWeapon::Tick(float DeltaTime)
 
 void AExpesWeapon::Fire(class AExpesCharacter* player)
 {
-    if (CanFire(player))
+    if (b_IsAI)
+    {
+        AIFire(player);
+    }
+    else if (CanFire(player))
     {
         switch (WeaponType)
         {
@@ -69,10 +73,51 @@ void AExpesWeapon::Fire(class AExpesCharacter* player)
         case EWeaponType::ERail:
             RailgunFire(player);
             break;
+        case EWeaponType::EAIGun:
+            RailgunFire(player);
+            break;
         default:
             return;
             break;
         }
+    }
+}
+
+void AExpesWeapon::AIFire(AExpesCharacter* Player)
+{
+    FVector Start = Player->FirstPersonCameraComponent->GetComponentLocation();
+    FRotator Rotation = Player->FirstPersonCameraComponent->GetComponentRotation();
+
+    FHitResult Hit(ForceInit);
+    FRotationMatrix RotMatrix(Rotation);
+
+    FVector End = Player->FirstPersonCameraComponent->GetForwardVector() * Range + Start;
+
+    FCollisionQueryParams params(FName(TEXT("lineTrace")),
+        true, // bTraceComplex
+        Player); // ignore actor
+    params.bReturnPhysicalMaterial = false;
+
+    GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera, params);
+
+    if (Hit.bBlockingHit)
+    {
+        DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Green, false, 1, 0, 1);
+        DrawDebugSolidBox(GetWorld(), FVector(Hit.Location), FVector(5, 5, 5), FRotationMatrix::MakeFromX(Hit.ImpactNormal).ToQuat(), FColor::Green, false, 1, 0);
+
+        FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
+
+        PlayImpactEffects(Hit.ImpactPoint);
+        TargetLocation = Hit.ImpactPoint;
+        PlayFireEffects(TargetLocation);
+
+        HandleDamage(Player, Hit);
+    }
+    else
+    {
+        FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
+        DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1, 0, 1);
+        PlayFireEffects(TargetLocation);
     }
 }
 
@@ -82,7 +127,7 @@ void AExpesWeapon::FireShotgun(AExpesCharacter* Player)
 
     FCollisionQueryParams TraceParams(FName(TEXT("lineTrace")),
         true, // bTraceComplex
-        this); // ignore actor
+        Player); // ignore actor
     TraceParams.bReturnPhysicalMaterial = false;
 
     FVector start = Player->FirstPersonCameraComponent->GetComponentLocation();
@@ -98,7 +143,7 @@ void AExpesWeapon::FireShotgun(AExpesCharacter* Player)
         Spread = RotMatrix.TransformVector(Spread);
         FVector end = Player->FirstPersonCameraComponent->GetForwardVector() * Range + start + Spread;
         FVector TracerEndPoint = end;
-        GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECC_Visibility, TraceParams);
+        GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Camera, TraceParams);
         if (hitResult.bBlockingHit)
         {
             //DrawDebugLine(GetWorld(), start, hitResult.Location, FColor::Green, false, 1, 0, 1);
@@ -107,6 +152,8 @@ void AExpesWeapon::FireShotgun(AExpesCharacter* Player)
             PlayImpactEffects(hitResult.ImpactPoint);
 
             TracerEndPoint = hitResult.ImpactPoint;
+
+            HandleDamage(Player, hitResult);
         }
         else
         {
@@ -163,26 +210,6 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
 
     if (CanFire(Player))
     {
-        // create the transient beam actor
-        UParticleSystemComponent* BeamComponentTemp = nullptr;
-        ARailBeam* RailBeamTemp = nullptr;
-
-        /*if (RailBeamClass)
-        {
-            // AQLRailBeam object is automatically destroyed after the particle effect ends
-            // because AQLRailBeam lifespan is specified in its BeginPlay()
-            RailBeamTemp = GetWorld()->SpawnActor<ARailBeam>(RailBeamClass, MuzzleLocation->GetComponentLocation(), FRotator::ZeroRotator);
-            if (RailBeamTemp)
-            {
-                RailBeamTemp->SetActorEnableCollision(false);
-                BeamComponentTemp = RailBeamTemp->GetBeamComponent();
-                if (BeamComponentTemp)
-                {
-                    BeamComponentTemp->SetBeamSourcePoint(0, MuzzleLocation->GetComponentLocation(), 0);
-                }
-            }
-        }*/
-
         FCollisionQueryParams TraceParams = FCollisionQueryParams(false);
         TraceParams.bReturnPhysicalMaterial = false;
 
@@ -199,11 +226,6 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
 
             FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
 
-            /*if (BeamComponentTemp)
-            {
-                BeamComponentTemp->SetBeamTargetPoint(0, Hit.ImpactPoint, 0);
-            }*/
-
             PlayImpactEffects(Hit.ImpactPoint);
             TargetLocation = Hit.ImpactPoint;
             PlayFireEffects(TargetLocation);
@@ -212,7 +234,6 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
         {
             FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
             //DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1, 0, 1);
-            //BeamComponentTemp->SetBeamTargetPoint(0, TargetLocation, 0);
             PlayFireEffects(TargetLocation);
         }
 
@@ -317,6 +338,29 @@ void AExpesWeapon::PlayFireEffects(class AExpesCharacter* Player)
     }
 }
 
+void AExpesWeapon::HandleDamage(class AExpesCharacter* Player, FHitResult Hit)
+{
+    // check the hit actor
+    auto* hitActor = Cast<AExpesCharacter>(Hit.GetActor());
+    if (!hitActor)
+    {
+        // do sth
+        return;
+    }
+
+    // if self-hurt
+    if (hitActor == Player)
+    {
+        // do sth
+        return;
+    }
+
+    // create a damage event
+    const FPointDamageEvent DamageEvent;
+
+    float DamageAmount = hitActor->TakeDamage(Damage, DamageEvent, Player->GetController(), this);
+}
+
 void AExpesWeapon::ConsumeAmmo(class AExpesCharacter* player)
 {
     player->SetAmmo(AmmoType, player->GetAmmo(AmmoType) - 1);
@@ -365,15 +409,31 @@ void AExpesWeapon::PlayAnimationMontage(class AExpesCharacter* Player)
 {
     if (Player)
     {
-        USkeletalMeshComponent* ArmMesh = Player->GetFirstPersonMesh();
-        if (ArmMesh)
+        if (Player->bIsAI)
         {
-            UAnimInstance* AnimInstance = ArmMesh->GetAnimInstance();
-            if (AnimInstance)
+            USkeletalMeshComponent* ArmMesh = Player->GetThirdPersonMesh();
+            if (ArmMesh)
             {
-                AnimInstance->Montage_Play(FireAnimation, 1.0f);
+                UAnimInstance* AnimInstance = ArmMesh->GetAnimInstance();
+                if (AnimInstance)
+                {
+                    AnimInstance->Montage_Play(FireAnimation, 1.0f);
+                }
             }
         }
+        else
+        { 
+            USkeletalMeshComponent* ArmMesh = Player->GetFirstPersonMesh();
+            if (ArmMesh)
+            {
+                UAnimInstance* AnimInstance = ArmMesh->GetAnimInstance();
+                if (AnimInstance)
+                {
+                    AnimInstance->Montage_Play(FireAnimation, 1.0f);
+                }
+            }
+        }
+
     }
 }
 

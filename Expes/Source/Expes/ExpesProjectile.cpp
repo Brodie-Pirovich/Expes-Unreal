@@ -123,12 +123,6 @@ void AExpesProjectile::HandleDirectHit(AActor* OtherActor, bool& bSelfDirectHit,
 
         bDirectHit = true;
     }
-
-    float DamageAmount = BasicDamageAdjusted;
-    const FPointDamageEvent DamageEvent;
-    DamageAmount = OtherActor->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
-
-    bDirectHit = true;
 }
 
 //------------------------------------------------------------
@@ -151,6 +145,13 @@ void AExpesProjectile::HandleSplashHit(AActor* OtherActor, bool bDirectHit)
     // iterate victims
     for (auto&& Result : OutOverlaps)
     {
+        TWeakObjectPtr<UPrimitiveComponent> Comp = Result.Component;
+
+        if (!Comp.IsValid() || !Cast<USkeletalMeshComponent>(Comp))
+        {
+            continue;
+        }
+
         AActor* HitActor = Result.GetActor();
 
         if (HitActor)
@@ -201,8 +202,8 @@ void AExpesProjectile::HandleSplashHit(AActor* OtherActor, bool bDirectHit)
                 DamageEvent.Params.OuterRadius = BlastRadius;
                 DamageEvent.Params.MinimumDamage = 0.0;
 
-                //DamageAmount = Character->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
-                Character->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
+                DamageAmount = Character->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
+                //Character->TakeDamage(DamageAmount, DamageEvent, PlayerController.Get(), this);
 
             }
             else
