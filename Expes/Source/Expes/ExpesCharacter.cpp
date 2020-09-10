@@ -539,6 +539,7 @@ AExpesPlayerController* AExpesCharacter::GetQLPlayerController()
 //------------------------------------------------------------
 void AExpesCharacter::OnDie()
 {
+	CurrentWeapon->Destroy();
     Destroy();
 }
 

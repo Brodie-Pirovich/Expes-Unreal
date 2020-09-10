@@ -85,6 +85,9 @@ void AExpesWeapon::Fire(class AExpesCharacter* player)
 
 void AExpesWeapon::AIFire(AExpesCharacter* Player)
 {
+    PlayAnimationMontage(Player);
+    Player->PlaySoundFireAndForget("Shotgunfire");
+
     FVector Start = Player->FirstPersonCameraComponent->GetComponentLocation();
     FRotator Rotation = Player->FirstPersonCameraComponent->GetComponentRotation();
 
