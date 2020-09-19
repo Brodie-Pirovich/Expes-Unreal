@@ -213,14 +213,16 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
 
     if (CanFire(Player))
     {
-        FCollisionQueryParams TraceParams = FCollisionQueryParams(false);
+        FCollisionQueryParams TraceParams(FName(TEXT("lineTrace")),
+            true, // bTraceComplex
+            Player); // ignore actor
         TraceParams.bReturnPhysicalMaterial = false;
 
         FHitResult Hit(ForceInit);
         FRotationMatrix RotMatrix(Rotation);
 
         FVector End = Player->FirstPersonCameraComponent->GetForwardVector() * Range + Start;
-        GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+        GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera, TraceParams);
 
         if (Hit.bBlockingHit)
         {
@@ -229,6 +231,7 @@ void AExpesWeapon::RailgunFire(class AExpesCharacter* Player)
 
             FVector TargetLocation = Start + Player->GetFirstPersonCameraComponent()->GetForwardVector() * Range;
 
+            HandleDamage(Player, Hit);
             PlayImpactEffects(Hit.ImpactPoint);
             TargetLocation = Hit.ImpactPoint;
             PlayFireEffects(TargetLocation);

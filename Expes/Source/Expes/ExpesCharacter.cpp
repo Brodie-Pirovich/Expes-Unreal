@@ -19,6 +19,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimMontage.h"
 #include "Sound/SoundCue.h"
+#include "GameFramework/Actor.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // AExpesCharacter
@@ -777,23 +779,16 @@ void AExpesCharacter::SetCurrentMovementStyle(EQLMovementStyle MyStyle)
 void AExpesCharacter::CreateInventory()
 {
 	UE_LOG(LogTemp, Warning, TEXT(""));
-	if (Role != ROLE_Authority)
+	for (auto& curWeapon : DefaultInventory)
 	{
-		ServerCreateInventory();
-	}
-	else
-	{
-		for (auto& curWeapon : DefaultInventory)
+		if (curWeapon)
 		{
-			if (curWeapon)
-			{
-				// TODO: Find out why the second player is creating a null weapon
-				AddWeapon(curWeapon);
-			}
+			// TODO: Find out why the second player is creating a null weapon
+			AddWeapon(curWeapon);
 		}
-
-		UpdateCurrentWeapon();
 	}
+
+	UpdateCurrentWeapon();
 }
 
 void AExpesCharacter::UpdateAmmoTexture()
@@ -825,39 +820,32 @@ bool AExpesCharacter::ServerCreateInventory_Validate()
 
 void AExpesCharacter::NextWeapon()
 {
-	if (Role != ROLE_Authority)
+	for (int32 Index = 0; Index != WeaponInventory.Num(); ++Index)
 	{
-		ServerNextWeapon();
-	}
-	else
-	{
-		for (int32 Index = 0; Index != WeaponInventory.Num(); ++Index)
+		if (WeaponInventory[Index] != NULL && WeaponInventory[Index]->SlotID > WeaponIndex)
 		{
-			if (WeaponInventory[Index] != NULL && WeaponInventory[Index]->SlotID > WeaponIndex)
-			{
-				WeaponIndex = WeaponInventory[Index]->SlotID;
-				UpdateCurrentWeapon();
-				return;
-			}
-			else
-			{
-				WeaponIndex = WeaponIndex;
-			}
+			WeaponIndex = WeaponInventory[Index]->SlotID;
+			UpdateCurrentWeapon();
+			return;
 		}
-		//WeaponIndex++;
-
-		/*if (WeaponInventory[WeaponIndex] == NULL)
-		{
-			WeaponIndex--;
-		}
-
-		if (WeaponIndex >= 9)
+		else
 		{
 			WeaponIndex = WeaponIndex;
 		}
-
-		UpdateCurrentWeapon();*/
 	}
+	//WeaponIndex++;
+
+	/*if (WeaponInventory[WeaponIndex] == NULL)
+	{
+		WeaponIndex--;
+	}
+
+	if (WeaponIndex >= 9)
+	{
+		WeaponIndex = WeaponIndex;
+	}
+
+	UpdateCurrentWeapon();*/
 }
 
 void AExpesCharacter::ServerNextWeapon_Implementation()
@@ -872,32 +860,25 @@ bool AExpesCharacter::ServerNextWeapon_Validate()
 
 void AExpesCharacter::PrevWeapon()
 {
-	if (Role != ROLE_Authority)
+	for (int32 Index = WeaponInventory.Num() - 1; Index >= 0; --Index)
 	{
-		ServerPrevWeapon();
-	}
-	else
-	{
-		for (int32 Index = WeaponInventory.Num() -1; Index >= 0; --Index)
+		if (WeaponInventory[Index] != NULL && WeaponInventory[Index]->SlotID < WeaponIndex)
 		{
-			if (WeaponInventory[Index] != NULL && WeaponInventory[Index]->SlotID < WeaponIndex)
-			{
-				WeaponIndex = WeaponInventory[Index]->SlotID;
-				UpdateCurrentWeapon();
-				return;
-			}
-			else
-			{
-				WeaponIndex = WeaponIndex;
-			}
+			WeaponIndex = WeaponInventory[Index]->SlotID;
+			UpdateCurrentWeapon();
+			return;
 		}
-		/*WeaponIndex--;
-		if (WeaponIndex < 0
-			|| WeaponIndex >= 255)
-			WeaponIndex = 0;
-
-		UpdateCurrentWeapon();*/
+		else
+		{
+			WeaponIndex = WeaponIndex;
+		}
 	}
+	/*WeaponIndex--;
+	if (WeaponIndex < 0
+		|| WeaponIndex >= 255)
+		WeaponIndex = 0;
+
+	UpdateCurrentWeapon();*/
 }
 
 void AExpesCharacter::ServerPrevWeapon_Implementation()
@@ -1043,14 +1024,7 @@ void AExpesCharacter::FireHeld(float Val)
 	if (Val > 0)
 	{
 		WasFiring = true;
-		if (Role == ROLE_Authority)
-		{
-			CurrentWeapon->Fire(this);
-		}
-		else
-		{
-			ServerFireHeld(Val);
-		}
+		CurrentWeapon->Fire(this);
 	}
 	else
 	{
