@@ -374,8 +374,8 @@ void UExpesMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool
                 }
                 else
                 {
-                    PenaltyForUnchainedStrafeJumpCurrent -= PenaltyForUnchainedStrafeJumpReductionPerFrame;
-                    Velocity = MyCharacter->GetActorForwardVector() * VelocityCached.Size() * PenaltyForUnchainedStrafeJumpCurrent;
+                    //PenaltyForUnchainedStrafeJumpCurrent -= PenaltyForUnchainedStrafeJumpReductionPerFrame;
+                    //Velocity = MyCharacter->GetActorForwardVector() * VelocityCached.Size() * PenaltyForUnchainedStrafeJumpCurrent;
                 }
             }
         }
