@@ -82,7 +82,7 @@ void AExpesPlayerController::OnPossess(APawn* ControlledPawn)
     if (ControlledCharacter)
     {
         // controlled character does not see his own health and armor bar
-        ControlledCharacter->SetHealthArmorBarVisible(false);
+        //ControlledCharacter->SetHealthArmorBarVisible(false);
 
         AddUMG();
     }

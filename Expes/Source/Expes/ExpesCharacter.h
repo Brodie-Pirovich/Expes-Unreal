@@ -76,9 +76,6 @@ public:
     void OnDie();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void OnRespawnNewCharacter();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
     bool IsAlive();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
@@ -104,12 +101,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void SetProtectionMultiplier(const float Value);
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void StartGlow();
-
-    UFUNCTION(BlueprintCallable, Category = "C++Function")
-    void StopGlow();
 
     UFUNCTION(BlueprintCallable, Category = "C++Function")
     void SetWeaponEnabled(const bool bFlag);

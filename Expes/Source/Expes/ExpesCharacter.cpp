@@ -21,13 +21,6 @@
 #include "Sound/SoundCue.h"
 #include "GameFramework/Actor.h"
 
-
-//////////////////////////////////////////////////////////////////////////
-// AExpesCharacter
-
-//------------------------------------------------------------
-// Sets default values
-//------------------------------------------------------------
 AExpesCharacter::AExpesCharacter(const class FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UExpesMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
@@ -141,8 +134,6 @@ void AExpesCharacter::Tick(float DeltaTime)
 	FirstPersonCameraComponent->SetFieldOfView(NewFOV);
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -184,9 +175,6 @@ void AExpesCharacter::PostInitializeComponents()
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
 void AExpesCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// set up gameplay key bindings
@@ -217,8 +205,6 @@ void AExpesCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis("LookUp", this, &AExpesCharacter::AddControllerPitchInput);
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::Jump()
 {
 	Super::Jump();
@@ -226,8 +212,6 @@ void AExpesCharacter::Jump()
 	bJumpButtonDown = true;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::StopJumping()
 {
 	Super::StopJumping();
@@ -235,15 +219,11 @@ void AExpesCharacter::StopJumping()
 	bJumpButtonDown = false;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 bool AExpesCharacter::IsJumpButtonDown()
 {
 	return bJumpButtonDown;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
@@ -255,8 +235,6 @@ void AExpesCharacter::MoveForward(float Value)
 	moveForwardInputValue = Value;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::MoveRight(float Value)
 {
 	if (Value != 0.0f)
@@ -278,16 +256,12 @@ float AExpesCharacter::GetMoveRightInputValue()
 	return moveRightInputValue;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 int AExpesCharacter::GetHealth() const
 {
 	int HealthText = Health;
 	return HealthText;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::AddHealth(float Increment)
 {
 	float Temp = Health + Increment;
@@ -304,23 +278,17 @@ void AExpesCharacter::AddHealth(float Increment)
 	UpdateHealth();
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 float AExpesCharacter::GetMaxHealth() const
 {
 	return MaxHealth;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 int AExpesCharacter::GetArmor() const
 {
 	int ArmorText = Armor;
 	return ArmorText;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::AddArmor(float Increment)
 {
 	float Temp = Armor + Increment;
@@ -337,38 +305,26 @@ void AExpesCharacter::AddArmor(float Increment)
 	UpdateArmor();
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 float AExpesCharacter::GetMaxArmor() const
 {
 	return MaxArmor;
 }
 
-//------------------------------------------------------------
-// Returns FirstPersonMesh subobject
-//------------------------------------------------------------
 USkeletalMeshComponent* AExpesCharacter::GetFirstPersonMesh()
 {
     return FirstPersonMesh;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 USkeletalMeshComponent* AExpesCharacter::GetThirdPersonMesh()
 {
     return ThirdPersonMesh;
 }
 
-//------------------------------------------------------------
-// Returns FirstPersonCameraComponent subobject
-//------------------------------------------------------------
 UCameraComponent* AExpesCharacter::GetFirstPersonCameraComponent() const
 {
     return FirstPersonCameraComponent;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 FHitResult AExpesCharacter::RayTraceFromCharacterPOV(float rayTraceRange)
 {
     FCollisionQueryParams params(FName(TEXT("lineTrace")),
@@ -395,8 +351,6 @@ FHitResult AExpesCharacter::RayTraceFromCharacterPOV(float rayTraceRange)
     return hitResult;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 float AExpesCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -455,8 +409,6 @@ float AExpesCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
     return ActualDamage;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::TakeDamageQuakeStyle(float ActualDamage)
 {
     if (ActualDamage > 0.0f)
@@ -491,22 +443,16 @@ void AExpesCharacter::TakeDamageQuakeStyle(float ActualDamage)
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::SetHealthArmorBarVisible(bool bFlag)
 {
-	//TODO
+
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::UpdateHealth()
 {
 	//return health;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::UpdateArmor()
 {
 	//return armour;
@@ -518,8 +464,6 @@ float AExpesCharacter::UpdateAmmo()
 	return GetAmmo(AmmoTag);
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 AExpesPlayerController* AExpesCharacter::GetQLPlayerController()
 {
     AController* MyController = GetController();
@@ -537,57 +481,27 @@ AExpesPlayerController* AExpesCharacter::GetQLPlayerController()
     return MyQLPlayerController;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::OnDie()
 {
 	CurrentWeapon->Destroy();
     Destroy();
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::OnRespawnNewCharacter()
-{
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
 UAnimSequence* AExpesCharacter::PlayAnimationSequence(const FName& AnimationSequenceName)
 {
 
     return nullptr;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::SetDamageMultiplier(const float Value)
 {
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::SetProtectionMultiplier(const float Value)
 {
     ProtectionMultiplier = Value;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::StartGlow()
-{
-
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
-void AExpesCharacter::StopGlow()
-{
-
-}
-
-//------------------------------------------------------------
-//------------------------------------------------------------
 bool AExpesCharacter::IsAlive()
 {
     if (Health > 0.0f)
@@ -600,8 +514,6 @@ bool AExpesCharacter::IsAlive()
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::PlaySoundFireAndForget(const FName& SoundName)
 {
     USoundBase** Result = SoundList.Find(SoundName);
@@ -615,8 +527,6 @@ void AExpesCharacter::PlaySoundFireAndForget(const FName& SoundName)
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::PlaySound(const FName& SoundName)
 {
     USoundCue** Result = SoundcueList.Find(SoundName);
@@ -634,8 +544,6 @@ void AExpesCharacter::PlaySound(const FName& SoundName)
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::StopSound()
 {
     if (SoundComponent)
@@ -647,30 +555,22 @@ void AExpesCharacter::StopSound()
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::SetWeaponEnabled(const bool bFlag)
 {
     bCanFireAndAltFire = bFlag;
     bCanSwitchWeapon = bFlag;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 bool AExpesCharacter::GetIsBot()
 {
     return bQLIsBot;
 }
 
-//------------------------------------------------------------
-//-----------------------------------------------------------
 void AExpesCharacter::SetIsBot(bool bFlag)
 {
     bQLIsBot = bFlag;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::SetMaxWalkSpeed(const float MaxWalkSpeed)
 {
     auto* MyCharacterMovement = GetCharacterMovement();
@@ -680,8 +580,6 @@ void AExpesCharacter::SetMaxWalkSpeed(const float MaxWalkSpeed)
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::ResetMaxWalkSpeed()
 {
     auto* MyCharacterMovement = GetCharacterMovement();
@@ -691,15 +589,11 @@ void AExpesCharacter::ResetMaxWalkSpeed()
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 bool AExpesCharacter::QLGetVisibility()
 {
     return bQLIsVisible;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::QLSetVisibility(const bool bFlag)
 {
     if (FirstPersonMesh)
@@ -715,22 +609,16 @@ void AExpesCharacter::QLSetVisibility(const bool bFlag)
     bQLIsVisible = bFlag;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 bool AExpesCharacter::QLGetVulnerability()
 {
     return bQLIsVulnerable;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::QLSetVulnerability(const bool bFlag)
 {
     bQLIsVulnerable = bFlag;
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::EquipAll()
 {
     if (bQLIsBot)
@@ -743,29 +631,21 @@ void AExpesCharacter::EquipAll()
     }
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::FellOutOfWorld(const UDamageType& dmgType)
 {
     OnDie();
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::AddControllerYawInput(float Val)
 {
     Super::AddControllerYawInput(0.6f * Val);
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::AddControllerPitchInput(float Val)
 {
     Super::AddControllerPitchInput(0.6f * Val);
 }
 
-//------------------------------------------------------------
-//------------------------------------------------------------
 void AExpesCharacter::SetCurrentMovementStyle(EQLMovementStyle MyStyle)
 {
     UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
@@ -833,19 +713,6 @@ void AExpesCharacter::NextWeapon()
 			WeaponIndex = WeaponIndex;
 		}
 	}
-	//WeaponIndex++;
-
-	/*if (WeaponInventory[WeaponIndex] == NULL)
-	{
-		WeaponIndex--;
-	}
-
-	if (WeaponIndex >= 9)
-	{
-		WeaponIndex = WeaponIndex;
-	}
-
-	UpdateCurrentWeapon();*/
 }
 
 void AExpesCharacter::ServerNextWeapon_Implementation()
@@ -873,12 +740,6 @@ void AExpesCharacter::PrevWeapon()
 			WeaponIndex = WeaponIndex;
 		}
 	}
-	/*WeaponIndex--;
-	if (WeaponIndex < 0
-		|| WeaponIndex >= 255)
-		WeaponIndex = 0;
-
-	UpdateCurrentWeapon();*/
 }
 
 void AExpesCharacter::ServerPrevWeapon_Implementation()
