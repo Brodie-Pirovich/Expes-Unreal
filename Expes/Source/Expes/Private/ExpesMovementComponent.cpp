@@ -90,9 +90,6 @@ void UExpesMovementComponent::TickComponent(float DeltaTime, enum ELevelTick Tic
     }
     else
     {
-        //float PlayerSpeed = Velocity.Y;
-        //UE_LOG(LogTemp, Warning, TEXT("%f"), PlayerSpeed);
-
         InputVectorCached = ConsumeInputVector();
 
         MyCharacter = Cast<AExpesCharacter>(CharacterOwner);
@@ -377,8 +374,8 @@ void UExpesMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool
                 }
                 else
                 {
-                    //PenaltyForUnchainedStrafeJumpCurrent -= PenaltyForUnchainedStrafeJumpReductionPerFrame;
-                    //Velocity = MyCharacter->GetActorForwardVector() * VelocityCached.Size() * PenaltyForUnchainedStrafeJumpCurrent;
+                    PenaltyForUnchainedStrafeJumpCurrent -= PenaltyForUnchainedStrafeJumpReductionPerFrame;
+                    Velocity = MyCharacter->GetActorForwardVector() * VelocityCached.Size() * PenaltyForUnchainedStrafeJumpCurrent;
                 }
             }
         }
